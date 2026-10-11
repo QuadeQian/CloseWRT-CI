@@ -83,8 +83,13 @@ configure_and_start() {
             sed -i 's/^cron_schedule=.*/cron_schedule="0 5 * * *"/' /etc/adblock-lean/config
         fi
     fi
-    /etc/init.d/cron enable 2>/dev/null || true
-    /etc/init.d/cron start 2>/dev/null || true
+    # 启动 cron：优先 cron 包提供的 init；chasey 等源无独立 cron 包时，回退到始终在场的 busybox crond
+    if [ -x /etc/init.d/cron ]; then
+        /etc/init.d/cron enable 2>/dev/null || true
+        /etc/init.d/cron start 2>/dev/null || true
+    elif command -v crond >/dev/null 2>&1; then
+        crond 2>/dev/null || true
+    fi
     /etc/init.d/$PKG enable
     # 已运行则跳过 start，避免每次 WAN-up 都重拉 blocklist（崩溃后由 status 检测自动重启）
     if /etc/init.d/$PKG status >/dev/null 2>&1; then

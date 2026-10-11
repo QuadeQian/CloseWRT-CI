@@ -4,6 +4,6 @@
     "repo": "lynxthecat/adblock-lean",
     "branch": "master",
     "bake": true,
-    "deps": ["gawk", "coreutils-sort", "uclient-fetch", "ca-bundle", "cron", "jsonfilter"]
+    "deps": ["gawk", "coreutils-sort", "uclient-fetch", "ca-bundle", "jsonfilter"]
   }
 }

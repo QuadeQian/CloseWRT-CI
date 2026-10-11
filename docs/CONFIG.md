@@ -108,7 +108,7 @@ make defconfig                                   # ④ 解析 + 清理
 |------|------|------|
 | `CONFIG_CCACHE` | `y` | ✅ 大幅加速增量编译，必开 |
 | `CONFIG_DEVEL` | `y` | ✅ 便于调试 / 符号，CI 可接受 |
-| `CONFIG_TARGET_OPTIMIZE_ACFLAGS` | `y` | ✅ 针对目标架构优化编译参数，体积/性能双赢 |
+| `CONFIG_TARGET_OPTIMIZE_ACFLAGS` | — | ⚠️ 已从 `Common.txt` 移除：部分 target（如 chasey/filogic）不提供该符号，需要时在对应 `overlays/<source>.txt` 单独开启 |
 | `CONFIG_TARGET_MULTI_PROFILE` | `y` | ✅ 单镜像多机型，符合「一包多设备」 |
 | `CONFIG_TARGET_PER_DEVICE_ROOTFS` | `y` | ✅ 每设备独立 rootfs，避免功能膨胀 |
 | `CONFIG_TARGET_ROOTFS_INITRAMFS` | `n` | ✅ MTK 路由无需 initramfs，关掉省空间 |
@@ -118,7 +118,8 @@ make defconfig                                   # ④ 解析 + 清理
 - `luci-app-homeproxy` 在 `Common.txt` 中默认**关闭**（家庭主路由暂不需要，且 sing-box 核心体积庞大）；如需启用，在对应 overlay 覆盖为 `=y` 即可。
 
 ### 增值 luci 应用
-默认启用：`autoreboot`、`gecoosac`、`mini-diskmanager`、`natmapt`、`partexp`、`samba4`、`upnp`、`wolultra`，以及 DNS 增强 `smartdns`（核心包 `smartdns` + `luci-app-smartdns`）。去广告由烘焙包 `adblock-lean` 负责（见 BakePkgs 机制），不再内置 `luci-app-adblock`。
+通用（`Common.txt`）默认启用：`autoreboot`、`mini-diskmanager`、`natmapt`、`partexp`、`upnp`，以及 DNS 增强 `smartdns`（核心包 `smartdns` + `luci-app-smartdns`）。去广告由烘焙包 `adblock-lean` 负责（见 BakePkgs 机制），不再内置 `luci-app-adblock`。
+源专属：`luci-app-wolultra` / `luci-app-gecoosac` 已下沉到 `Config/overlays/padavanonly.txt`（chasey feed 不含，padavanonly 源 feed 提供；若某源也缺失需改用 `Packages.sh` 克隆）。
 默认移除：`attendedsysupgrade`、`wol`（避免与 `wolultra` 冲突 / 冗余）。
 
 > 优化建议：插件越多体积越大。在嵌入式小闪存设备（如 256M / 128M 版）上，建议在该源的 `overlays/<source>.txt` 中对非必需插件显式 `=n`，配合 `PER_DEVICE_ROOTFS` 让每设备只装所需。

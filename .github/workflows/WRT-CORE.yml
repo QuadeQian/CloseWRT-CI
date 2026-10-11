@@ -235,6 +235,7 @@ jobs:
           while IFS= read -r LINE; do
             case "$LINE" in
               CONFIG_*=y)
+                # 用户态包 / TARGET 选项必须编入镜像(=y)；仅当完全缺失（上游改名/移除）才判为漂移。
                 if ! grep -qxF "$LINE" .config; then
                   echo "::error::配置漂移：${LINE%=y} 未在最终 .config 中生效（可能被上游改名或移除）"
                   DRIFT_FOUND=1
@@ -243,7 +244,8 @@ jobs:
             esac
           done < "$GITHUB_WORKSPACE/Config/Common.txt"
 
-          # 烘焙包依赖：由 BakePkgs.sh 预先生成为 .cwrt-baked-deps（每行一个包名）
+          # 烘焙包依赖：由 BakePkgs.sh 预先生成为 .cwrt-baked-deps（每行一个包名）。
+          # 烘焙依赖均为用户态运行期工具，必须编入镜像(=y)。
           if [ -f .cwrt-baked-deps ]; then
             while IFS= read -r DEP; do
               [ -n "$DEP" ] || continue

@@ -1,0 +1,9 @@
+{
+  "_comment": "构建期“烘焙”包注册表。烘焙包 = 自带安装脚本、不在 opkg feed 里的第三方工具（如 adblock-lean）。构建时 BakePkgs.sh 按 bake 开关决定是否把发行物浅克隆、剔 .git/CI 后压缩为 files/usr/share/cwrt-pkgs/<pkg>/src.tar.gz 作离线回退，并把 deps 写入 .config。运行时 activate.sh 适配器优先在线安装（拿最新版），失败回退离线副本。由通用 uci-defaults 99_cwrt-activate-pkgs 在首启动时发现并执行。",
+  "adblock-lean": {
+    "repo": "lynxthecat/adblock-lean",
+    "branch": "master",
+    "bake": true,
+    "deps": ["gawk", "coreutils-sort", "uclient-fetch", "ca-bundle", "cron", "jsonfilter"]
+  }
+}

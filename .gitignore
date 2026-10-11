@@ -1,0 +1,7 @@
+# 构建期由 BakePkgs.sh 生成的派生文件（每次构建会重新生成，不纳入版本控制）
+.cwrt-baked-deps
+Config/baked-pkgs-deps.txt
+
+# Python 字节码缓存
+__pycache__/
+*.pyc

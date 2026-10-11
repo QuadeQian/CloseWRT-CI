@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2026 VIKINGYFY
+
+# 编译 Yuzhii0718/immortalwrt-mt798x-6.6-padavanonly (分支 openwrt-24.10-6.6)
+# 本工作流为 CWRT-BUILD 的便捷封装：自动选择 Sources.json 中的 padavanonly 源。
+name: CWRT-padavanonly
+
+on:
+  # 手动编译
+  workflow_dispatch:
+    inputs:
+      PROFILES:
+        description: '限定 profile（空格分隔），留空=全部'
+        default: ''
+        required: false
+        type: string
+      PACKAGE:
+        description: '手动调整插件包，多个请用\n符号隔开。'
+        required: false
+        type: string
+      TEST:
+        description: '仅输出配置文件，不编译固件。'
+        default: false
+        required: false
+        type: boolean
+
+# CI权限
+permissions: write-all
+
+jobs:
+  build:
+    uses: ./.github/workflows/CWRT-BUILD.yml
+    with:
+      SOURCE: padavanonly
+      PROFILES: ${{inputs.PROFILES}}
+      PACKAGE: ${{inputs.PACKAGE}}
+      TEST: ${{inputs.TEST || false}}

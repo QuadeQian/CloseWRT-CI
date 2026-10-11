@@ -1,0 +1,142 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2026 VIKINGYFY
+
+# 通用编译引擎：可编译任意含 defconfig 目录的 owrt 项目。
+# - schedule：自动全编 Sources.json 中 schedule=true 的所有源。
+# - workflow_dispatch：选择已知源（或 custom 自定义源），可限定 profile。
+# - 被 CWRT-chasey.yml / CWRT-padavanonly.yml 等包装调用。
+name: CWRT-BUILD
+
+on:
+  # 自动编译：每周一早上5点
+  schedule:
+    - cron: 0 21 * * 0
+  # 手动编译
+  workflow_dispatch:
+    inputs:
+      SOURCE:
+        description: '已知源 key（见 Sources.json），或填 custom'
+        default: 'chasey'
+        required: true
+        type: string
+      REPO:
+        description: 'custom 时填写 owner/repo'
+        default: ''
+        required: false
+        type: string
+      BRANCH:
+        description: 'custom 时填写分支'
+        default: ''
+        required: false
+        type: string
+      PROFILES:
+        description: '限定 profile（空格分隔），留空=全部'
+        default: ''
+        required: false
+        type: string
+      PACKAGE:
+        description: '手动调整插件包，多个请用\n符号隔开。'
+        required: false
+        type: string
+      TEST:
+        description: '仅输出配置文件，不编译固件。'
+        default: false
+        required: false
+        type: boolean
+  # 被其它工作流调用
+  workflow_call:
+    inputs:
+      SOURCE:
+        required: false
+        type: string
+        default: 'chasey'
+      REPO:
+        required: false
+        type: string
+        default: ''
+      BRANCH:
+        required: false
+        type: string
+        default: ''
+      PROFILES:
+        required: false
+        type: string
+        default: ''
+      PACKAGE:
+        required: false
+        type: string
+        default: ''
+      TEST:
+        required: false
+        type: boolean
+        default: false
+
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+# CI权限
+permissions: write-all
+
+jobs:
+  # 解析构建矩阵：每个 (源, profile) 一项
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+    steps:
+      - name: Checkout Projects
+        uses: actions/checkout@main
+
+      - name: Resolve build matrix
+        id: gen
+        env:
+          MODE: ${{ github.event_name == 'schedule' && 'schedule' || 'dispatch' }}
+        run: |
+          MATRIX=$(python3 .github/scripts/resolve_matrix.py \
+            --sources-file Sources.json \
+            --mode "$MODE" \
+            --source "${{ inputs.SOURCE }}" \
+            --repo "${{ inputs.REPO }}" \
+            --branch "${{ inputs.BRANCH }}" \
+            --profiles "${{ inputs.PROFILES }}")
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "resolved entries: $(echo "$MATRIX" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)))')"
+
+  build:
+    needs: resolve
+    if: ${{ needs.resolve.outputs.matrix != '[]' }}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include: ${{ fromJson(needs.resolve.outputs.matrix) }}
+    name: ${{matrix.key}}/${{matrix.profile}}
+    # 调用公用编译核心 WRT-CORE.yml
+    uses: ./.github/workflows/WRT-CORE.yml
+    with:
+      # 上游 defconfig 的 profile 名
+      WRT_CONFIG: ${{matrix.profile}}
+      # 覆盖层名
+      WRT_OVERLAY: ${{matrix.overlay}}
+      # 默认主题
+      WRT_THEME: ${{matrix.theme}}
+      # 默认主机名
+      WRT_NAME: CWRT
+      # 默认WIFI名称
+      WRT_SSID: CWRT
+      # 默认WIFI密码
+      WRT_WORD: 12345678
+      # 默认地址
+      WRT_IP: 192.168.10.1
+      # 默认密码，仅作提示，修改无用
+      WRT_PW: 无
+      # 源码链接
+      WRT_REPO: https://github.com/${{matrix.repo}}.git
+      # 源码分支
+      WRT_BRANCH: ${{matrix.branch}}
+      # 源码名称
+      WRT_SOURCE: ${{matrix.repo}}
+      # 插件调整
+      WRT_PACKAGE: ${{inputs.PACKAGE}}
+      # 仅输出配置文件
+      WRT_TEST: ${{inputs.TEST || false}}

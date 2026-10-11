@@ -1,0 +1,24 @@
+#!/bin/sh
+# Generic baked-package activator — 每次启动运行（适配器自身幂等）。
+# 发现 /usr/share/cwrt-pkgs/<pkg>/activate.sh 适配器并逐个调用（默认 install 阶段）。
+# 各适配器自包含：在线优先安装 + 按需激活（如等待 WAN 上线，见各适配器内部逻辑）。
+set -e
+
+PKGS_DIR="/usr/share/cwrt-pkgs"
+[ -d "$PKGS_DIR" ] || exit 0
+
+for d in "$PKGS_DIR"/*/; do
+    [ -d "$d" ] || continue
+    adapter="${d}activate.sh"
+    [ -x "$adapter" ] || continue
+    name=$(basename "$d")
+    echo "cwrt-activate: running adapter for $name"
+    if "$adapter"; then
+        echo "cwrt-activate: $name OK"
+    else
+        echo "cwrt-activate: $name FAILED (rc=$?)" >&2
+        logger -t cwrt-activate "baked pkg '$name' adapter failed (rc=$?)"
+    fi
+done
+
+exit 0

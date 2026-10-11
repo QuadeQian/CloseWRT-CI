@@ -1,0 +1,19 @@
+{
+  "_comment": "已知可编译的 owrt 项目注册表。新增源只需在此追加一项，并在 Config/overlays/ 提供同名覆盖层文件（或复用 _default）。schedule=true 的源会在每周自动全编。",
+  "chasey": {
+    "repo": "chasey-dev/immortalwrt-mt798x-rebase",
+    "branch": "25.12",
+    "overlay": "chasey",
+    "theme": "aurora",
+    "schedule": true,
+    "note": "新版 immortalwrt-mt798x rebase，子目标 mediatek/filogic"
+  },
+  "padavanonly": {
+    "repo": "Yuzhii0718/immortalwrt-mt798x-6.6-padavanonly",
+    "branch": "openwrt-24.10-6.6",
+    "overlay": "padavanonly",
+    "theme": "aurora",
+    "schedule": true,
+    "note": "6.6 内核 padavanonly 闭源 WiFi 变体，子目标 mediatek/mt7981|mt7986"
+  }
+}

@@ -1,0 +1,14 @@
+# =====================================================================
+# Yuzhii0718/immortalwrt-mt798x-6.6-padavanonly (分支 openwrt-24.10-6.6) 专属覆盖层
+# 设计原则：上游 defconfig 已是「基底」，已内置完整的 MTK/WARP 闭源驱动与设备配置，
+# 我们【不应镜像】它——镜像只会在上游改动时产生静默分歧或被覆盖。
+# 本文件只放「源码无关通用项(Common.txt)之外的、仅 padavanonly 需要的真实增量」：
+#   - 我们想要但上游默认未选的包（CONFIG_PACKAGE_xxx=y）
+#   - 我们坚持要关掉的某项（# CONFIG_X is not set）
+# 大多数 MTK/WARP 驱动配置完全由上游 defconfig 提供，无需在此重复。
+# 下面这几项是历史上「刻意与上游 defconfig 不同」的真实增量，仅它们需要保留。
+# =====================================================================
+
+# 内存相关（MTK_MEMORY_SHRINK / MTK_MEMORY_SHRINK_AGGRESS 等）一律【跟随上游】：
+# 上游 defconfig 已按各机型 RAM 大小给出合适默认值，本覆盖层不再覆盖。
+# 当前 padavanonly 除 Common.txt 与上游基底外，无额外源码级覆盖项。

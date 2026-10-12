@@ -38,6 +38,25 @@ def list_defconfigs(repo, branch, profiles_filter):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def normalize_meta_defconfigs(defs):
+    """规范化 Sources.json 中定义的 defconfig 列表。接受字符串或列表，允许 .config 后缀。"""
+    if not defs:
+        return []
+    if isinstance(defs, str):
+        items = [d.strip() for d in defs.replace(",", " ").split() if d.strip()]
+    else:
+        items = list(defs)
+    norm = []
+    for p in items:
+        p = str(p).strip()
+        if not p:
+            continue
+        if p.endswith(".config"):
+            p = p[:-len(".config")]
+        norm.append(p)
+    return norm
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sources-file", required=True)
@@ -70,7 +89,14 @@ def main():
 
     entries = []
     for key, meta in targets.items():
-        profiles = list_defconfigs(meta["repo"], meta["branch"], args.profiles)
+        if isinstance(meta, dict) and meta.get("defconfig"):
+            profiles = normalize_meta_defconfigs(meta.get("defconfig"))
+            if args.profiles and args.profiles.strip() not in ("*", ""):
+                wanted = {p.strip() for p in args.profiles.replace(",", " ").split() if p.strip()}
+                profiles = [f for f in profiles if f in wanted]
+        else:
+            profiles = list_defconfigs(meta["repo"], meta["branch"], args.profiles)
+
         for p in profiles:
             entries.append({
                 "key": key,
